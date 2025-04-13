@@ -1,2 +1,2 @@
 # fullstack-node-react
-course fullstack node-react-next
+Curso practico de aplicaciones con node, react, next, nest y mongoDB
