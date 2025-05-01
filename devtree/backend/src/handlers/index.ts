@@ -3,6 +3,7 @@ import { validationResult } from "express-validator";
 import slugify from "slugify";
 import User from "../models/User";
 import { checkPassword, hashPassword } from "../utils/auth";
+import { generateJWT } from "../utils/jwt";
 
 
 
@@ -55,6 +56,8 @@ export const login = async (req: Request, res: Response) => {
     return;
    }
 
-   res.status(200).send({ message: 'Login correcto' });
+  const token =  generateJWT({id: user._id});
+
+   res.send(token);
 
 }
