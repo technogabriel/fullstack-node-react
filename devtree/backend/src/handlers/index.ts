@@ -1,6 +1,9 @@
 import type { Request, Response } from "express";
 import { validationResult } from "express-validator";
 import slugify from "slugify";
+import formidable from "formidable";
+import cloudinary from "../config/cloudinary";
+import { v4 as uuid } from "uuid";
 import User from "../models/User";
 import { checkPassword, hashPassword } from "../utils/auth";
 import { generateJWT } from "../utils/jwt";
@@ -80,7 +83,7 @@ export const updateProfile = async (req: Request, res: Response) => {
             res.status(409).json({ error: error.message });
             return;
         }
-        
+
         //Actualizar el usuario
         req.user.description = description;
         req.user.handle = handle;
@@ -92,6 +95,30 @@ export const updateProfile = async (req: Request, res: Response) => {
         res.status(500).json({ error: error.message });
 
     }
+}
 
+export const uploadImage = async (req: Request, res: Response) => {
+    const form = formidable({ multiples: false });
+    try {
+        form.parse(req, (error, fields, files) => {
+            console.log(files.file[0].filepath);
 
+            cloudinary.uploader.upload(files.file[0].filepath, { public_id: uuid() }, async function (error, result) {
+                if (error) {
+                    const error = new Error('Error al actualizar el perfil');
+                    res.status(500).json({ error: error.message });
+                }
+                if (result) {
+                    req.user.image = result.secure_url;
+                    await req.user.save();
+                    res.json({ image: result.secure_url });
+                }
+
+            })
+        })
+
+    } catch (e) {
+        const error = new Error('Error al actualizar el perfil');
+        res.status(500).json({ error: error.message });
+    }
 }
